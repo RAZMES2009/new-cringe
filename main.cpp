@@ -309,15 +309,17 @@ int main()
         delete isPrintFirst;
         delete isPrintSecond;
 
-        double scale = 1;
-        int count = 0;
-        for (int i = 700;; i *= 10)
+        int scale = 1;
+        int count = 1;
+        for (count;; count++)
         {
-            count++;
-            if (coord[twoPoint[0]][0] >= i || coord[twoPoint[0]][0] >= i || coord[twoPoint[1]][0] >= i || coord[twoPoint[1]][1] >= i)
-                scale /= 10;
+            if (coord[twoPoint[0]][0] / scale >= WIDTH || coord[twoPoint[0]][1] / scale >= WIDTH || coord[twoPoint[1]][0] / scale >= WIDTH || coord[twoPoint[1]][1] / scale >= WIDTH)
+                scale++;
             else
+            {
+                scale++;
                 break;
+            }
         }
 
         if (isFileClose)
@@ -333,13 +335,17 @@ int main()
         sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "test");
 
         int centerWindow = WIDTH / 2;
+        sf::CircleShape centerCircle(1);
         sf::Vertex line[2];
-        line[0].position.x = centerWindow + coord[twoPoint[0]][0] * scale;
-        line[0].position.y = centerWindow - coord[twoPoint[0]][1] * scale;
+        line[0].position.x = centerWindow + coord[twoPoint[0]][0] / scale;
+        line[0].position.y = centerWindow - coord[twoPoint[0]][1] / scale;
         line[0].color = sf::Color::Red;
-        line[1].position.x = centerWindow + coord[twoPoint[1]][0] * scale;
-        line[1].position.y = centerWindow - coord[twoPoint[1]][1] * scale;
+        line[1].position.x = centerWindow + coord[twoPoint[1]][0] / scale;
+        line[1].position.y = centerWindow - coord[twoPoint[1]][1] / scale;
         line[1].color = sf::Color::Red;
+
+        centerCircle.setPosition(sf::Vector2f(centerWindow, centerWindow));
+        centerCircle.setFillColor(sf::Color::White);
 
         while (window.isOpen())
         {
@@ -351,6 +357,7 @@ int main()
             }
 
             window.clear();
+            window.draw(centerCircle);
             window.draw(line, 2, sf::Lines);
             window.display();
         }
