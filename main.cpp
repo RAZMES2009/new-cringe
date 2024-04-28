@@ -239,9 +239,6 @@ int main()
             ifstream input(userInputFpath);
             while (getline(input, myArrFile, '\n') && getline(input, s1, ' ') && getline(input, s2))
             {
-                cout << myArrFile << endl;
-                cout << s1 << endl;
-                cout << s2 << endl;
                 string tmpNum = "";
                 bool flag = false;
                 int j = 0;
@@ -269,8 +266,6 @@ int main()
         }
         else
             coord = getCoordPoints();
-
-        cout << "aaaaaaaaaaaaaaaaaaaaa";
 
         cout << "вывести данные в файл? (y/n) ";
         bool isFileClose = choice();
