@@ -23,10 +23,10 @@ inline int64_t toInt64(double x)
 
 inline bool isSmaller(double x1, double x2)
 {
-    return toInt64(x1) <= toInt64(x2);
+    return toInt64(x1) < toInt64(x2);
 }
 
-int getMyArr(string inputString, short count = 0, bool isFileOpen = false)
+int64_t getMyArr(string inputString, short count = 0, bool isFileOpen = false)
 {
     try
     {
@@ -39,87 +39,72 @@ int getMyArr(string inputString, short count = 0, bool isFileOpen = false)
                 continue;
             }
             if (!isdigit(inputString[j]))
-                throw std::runtime_error("err");
+                throw "err";
         }
         return stoi(inputString);
     }
     catch (...)
     {
-        std::cout << "Значение стоящее " << count << " по порядку введено некорректно"
-                                                     " введите исправленое значение"
-                  << std::endl;
         if (isFileOpen)
+        {
+            cout << "Неверный ввод данных в файле" << endl;
             exit(1);
-        string inputString;
+        }
+        cout << "Значение стоящее " << count << " по порядку введено некорректно"
+                                                " введите исправленое значение"
+             << endl;
         getline(cin, inputString);
-        return getMyArr(inputString);
+        return getMyArr(inputString, count, isFileOpen);
     }
 }
 
-bool isPrint(vector<vector<int>> coord, int firstPoint, int secondPoint, bool is_i_j, bool isFileClose, string userFile)
+bool isPrint(vector<vector<int64_t>> coord, int64_t firstPoint, int64_t secondPoint, bool is_i_j,
+             bool isFileClose, fstream &userFile)
 {
-    int distanceX_ij, distanceY_ij;
-    double distance_ij;
-    distanceX_ij = abs(coord[secondPoint][0]) - abs(coord[firstPoint][0]);
-    distanceY_ij = abs(coord[secondPoint][1]) - abs(coord[firstPoint][1]);
-    distance_ij = sqrt(pow(distanceX_ij, 2) + pow(distanceY_ij, 2));
-    if (is_i_j && !isFileClose)
-        cout << "дистанция между i и j = " << distance_ij << endl;
-    else if (is_i_j && isFileClose)
+    int64_t distanceX_ij = abs(coord[secondPoint][0]) - abs(coord[firstPoint][0]);
+    int64_t distanceY_ij = abs(coord[secondPoint][1]) - abs(coord[firstPoint][1]);
+    double distance_ij = sqrt(pow(distanceX_ij, 2) + pow(distanceY_ij, 2));
+
+    if (is_i_j)
     {
-        ofstream out(userFile);
-        out << "дистанция между i и j = " << distance_ij << endl;
-        out.close();
+        if (isFileClose)
+            userFile << "дистанция между i и j = " << distance_ij << endl;
+        else
+            cout << "дистанция между i и j = " << distance_ij << endl;
     }
 
-    int buffDistanceX_ij, buffDistanceY_ij;
+    uint64_t secondArg = is_i_j ? firstPoint : secondPoint;
     for (int j = 0; j < coord.size(); j++)
     {
         if (j == firstPoint || j == secondPoint)
             continue;
-        if (is_i_j)
+        distanceX_ij = abs(coord[j][0]) - abs(coord[secondArg][0]);
+        distanceY_ij = abs(coord[j][1]) - abs(coord[secondArg][1]);
+
+        double buffDistance_ij = sqrt(pow(distanceX_ij, 2) + pow(distanceY_ij, 2));
+        if (fabs(distance_ij - buffDistance_ij) < numeric_limits<double>::epsilon())
         {
-            buffDistanceX_ij = abs(coord[j][0]) - abs(coord[firstPoint][0]);
-            buffDistanceY_ij = abs(coord[j][1]) - abs(coord[firstPoint][1]);
-        }
-        else
-        {
-            buffDistanceX_ij = abs(coord[j][0]) - abs(coord[secondPoint][0]);
-            buffDistanceY_ij = abs(coord[j][1]) - abs(coord[secondPoint][1]);
-        }
-        double buffDistance_ij = sqrt(pow(buffDistanceX_ij, 2) + pow(buffDistanceY_ij, 2));
-        if (isSmaller(distance_ij, buffDistance_ij))
-        {
+            stringstream errMsg;
+            string firSec = is_i_j ? " первое " : " второе ";
+            errMsg << "не выполняется " << firSec << " условие, так как дистанция между точкой "
+                   << j + 1 << " и " << firstPoint + 1 << " больше или равно дистанции между точками "
+                   << firstPoint + 1 << " и " << secondPoint + 1 << endl;
+
             if (!isFileClose)
-                is_i_j ? printf("не выполняется первое условие, так как дистанция между точкой %i и %i"
-                                " больше или равно дистанции между точками %i и %i\n",
-                                j + 1, firstPoint + 1, firstPoint + 1, secondPoint + 1)
-                       : printf("не выполняется второе условие, так как дистанция между точкой %i и %i"
-                                " больше или равно дистанции между точками %i и %i\n",
-                                j + 1, secondPoint + 1, firstPoint + 1, secondPoint + 1);
+                cout << errMsg.str();
             else
-            {
-                ofstream out;
-                out.open(userFile, ios::app);
-                if (is_i_j)
-                    out << "не выполняется первое условие, так как дистанция между точкой "
-                        << j + 1 << " и " << firstPoint + 1 << " больше или равно дистанции между точками "
-                        << firstPoint + 1 << " и " << secondPoint + 1 << endl;
-                else
-                    out << "не выполняется второе условие, так как дистанция между точкой "
-                        << j + 1 << " и " << secondPoint + 1 << " больше или равно дистанции между точками "
-                        << firstPoint + 1 << " и " << secondPoint + 1 << endl;
-            }
+                userFile << errMsg.str();
             return false;
         }
     }
     return true;
 }
 
-vector<int> getTwoPoint(vector<vector<int>> coord, bool *isPrintFirst, bool *isPrintSecond,
-                        bool isFileOpen, bool isFileClose = false, string userFile = "", int firstFilP = 0, int secondFilP = 0)
+vector<int64_t> getTwoPoint(vector<vector<int64_t>> coord, bool *isPrintFirst, bool *isPrintSecond,
+                            bool isFileOpen, fstream &userFile, bool isFileClose,
+                            int64_t firstFilP = 0, int64_t secondFilP = 0)
 {
-    int firstPoint, secondPoint;
+    int64_t firstPoint, secondPoint;
     if (!isFileOpen)
     {
         cout << "Введите две разные точки через пробел: " << endl;
@@ -132,8 +117,8 @@ vector<int> getTwoPoint(vector<vector<int>> coord, bool *isPrintFirst, bool *isP
 
             if (getline(stringNum, stringFirstNum, ' ') && getline(stringNum, stringSecondNum))
             {
-                firstPoint = getMyArr(stringFirstNum, 1) - 1;
-                secondPoint = getMyArr(stringSecondNum, 2) - 1;
+                firstPoint = getMyArr(stringFirstNum, 1, isFileOpen) - 1;
+                secondPoint = getMyArr(stringSecondNum, 2, isFileOpen) - 1;
                 if (firstPoint != secondPoint)
                     break;
             }
@@ -142,11 +127,11 @@ vector<int> getTwoPoint(vector<vector<int>> coord, bool *isPrintFirst, bool *isP
     }
     else
     {
-        firstPoint = firstFilP;
-        secondPoint = secondFilP;
+        firstPoint = firstFilP - 1;
+        secondPoint = secondFilP - 1;
     }
 
-    if (firstPoint < coord.size() && secondPoint < coord.size())
+    if (firstPoint < coord.size() && secondPoint < coord.size() && firstPoint > -1 && secondPoint > -1)
     {
         *isPrintFirst = isPrint(coord, firstPoint, secondPoint, true, isFileClose, userFile);
         *isPrintSecond = isPrint(coord, firstPoint, secondPoint, false, isFileClose, userFile);
@@ -155,16 +140,16 @@ vector<int> getTwoPoint(vector<vector<int>> coord, bool *isPrintFirst, bool *isP
     {
         cout << "Ошибка. Введите существующие точки" << endl;
         if (!isFileOpen)
-            return getTwoPoint(coord, isPrintFirst, isPrintSecond, false, isFileClose, userFile);
+            return getTwoPoint(coord, isPrintFirst, isPrintSecond, false, userFile, isFileClose);
         exit(1);
     }
     return {firstPoint, secondPoint};
 }
 
-vector<vector<int>> getCoordPoints()
+vector<vector<int64_t>> getCoordPoints()
 {
     cout << "Введите натуральное число координаты точки х1,y1,...хn,yn: " << endl;
-    vector<vector<int>> tmpCoord;
+    vector<vector<int64_t>> tmpCoord;
     for (short i = 0;; i++)
     {
         printf("Введите x%i и y%i через пробел: ", i + 1, i + 1);
@@ -175,7 +160,7 @@ vector<vector<int>> getCoordPoints()
         stringstream stringNum;
         stringNum << inputString;
 
-        int coordX, coordY;
+        int64_t coordX, coordY;
         if (getline(stringNum, stringFirstNum, ' ') && getline(stringNum, stringSecondNum))
         {
             coordX = getMyArr(stringFirstNum, 1);
@@ -187,8 +172,7 @@ vector<vector<int>> getCoordPoints()
             i--;
             continue;
         }
-
-        tmpCoord.push_back(vector<int>{coordX, coordY});
+        tmpCoord.push_back(vector<int64_t>{coordX, coordY});
     }
     return tmpCoord;
 }
@@ -203,23 +187,29 @@ bool choice()
     return choice();
 }
 
-string inputUserPath(string defaultPath)
+fstream inputUserPath(string defaultPath, bool isOpen)
 {
     string userFile;
     cout << "Введите путь к файлу: ";
     getline(cin, userFile);
+    fstream myFile;
     if (userFile == "")
-        return defaultPath;
-    ofstream out(userFile);
-    if (out)
     {
-        out.close();
-        return userFile;
+        myFile.open(defaultPath, isOpen ? ifstream::in : ifstream::out);
+        return myFile;
+    }
+    else
+        myFile.open(userFile, isOpen ? ifstream::in : ifstream::out);
+
+    if (myFile)
+    {
+        myFile.close();
+        return myFile;
     }
     else
     {
         cout << "Неверно указан путь к файлу\n";
-        return inputUserPath(defaultPath);
+        return inputUserPath(defaultPath, isOpen);
     }
 }
 
@@ -232,31 +222,44 @@ int main()
         cout << "Cчитать данные с файла? (y/n) ";
         bool isFileOpen = choice();
         string s1, s2, myArrFile;
-        vector<vector<int>> coord;
+        vector<vector<int64_t>> coord;
         if (isFileOpen)
         {
-            string userInputFpath = inputUserPath("./in.txt");
-            ifstream input(userInputFpath);
+            fstream input = inputUserPath("./in.txt", true);
             while (getline(input, myArrFile, '\n') && getline(input, s1, ' ') && getline(input, s2))
             {
                 string tmpNum = "";
-                bool flag = false;
-                int j = 0;
-                vector<int> tmpCoord;
+                int64_t j = 0;
+                int32_t count = 0;
+                vector<int64_t> tmpCoord;
                 for (char i : myArrFile)
                 {
-                    if (i == ',' || i == ';')
+                    count++;
+                    if (i == ',' || i == ';' || count == myArrFile.size())
                     {
-                        tmpCoord.push_back(getMyArr(tmpNum, true));
-                        if (j == 1)
+                        if (count == myArrFile.size())
                         {
+                            tmpNum += i;
+                            tmpCoord.push_back(getMyArr(tmpNum, 1, true));
+                            coord.push_back(tmpCoord);
+                            break;
+                        }
+                        tmpCoord.push_back(getMyArr(tmpNum, 1, true));
+                        if (i == ';')
+                        {
+                            if (j != 1)
+                            {
+                                cout << "Неверный ввод данных в файле" << endl;
+                                exit(1);
+                            }
                             coord.push_back(tmpCoord);
                             tmpCoord.clear();
                             j = 0;
                         }
+                        else
+                            j++;
+
                         tmpNum = "";
-                        j++;
-                        continue;
                     }
                     else
                         tmpNum += i;
@@ -269,28 +272,17 @@ int main()
 
         cout << "вывести данные в файл? (y/n) ";
         bool isFileClose = choice();
-        string userOutputFpath;
+        fstream userOutputFile;
         if (isFileClose)
-            userOutputFpath = inputUserPath("./out.txt");
+            userOutputFile = inputUserPath("./out.txt", false);
 
         bool *isPrintFirst = new bool{true}, *isPrintSecond = new bool{true};
-        vector<int> twoPoint;
-        if (isFileClose)
-        {
-            if (!isFileOpen)
-                twoPoint = getTwoPoint(coord, isPrintFirst, isPrintSecond, false, true, userOutputFpath);
-            else
-                twoPoint = getTwoPoint(coord, isPrintFirst, isPrintSecond, true, true, userOutputFpath,
-                                       getMyArr(s1, true) - 1, getMyArr(s2, true) - 1);
-        }
-        else
-        {
-            if (!isFileOpen)
-                twoPoint = getTwoPoint(coord, isPrintFirst, isPrintSecond, false);
-            else
-                twoPoint = getTwoPoint(coord, isPrintFirst, isPrintSecond, true, false, "",
-                                       getMyArr(s1, true) - 1, getMyArr(s2, true) - 1);
-        }
+
+        vector<int64_t> twoPoint = getTwoPoint(coord, isPrintFirst, isPrintSecond,
+                                               !isFileOpen ? false : true, userOutputFile,
+                                               isFileClose ? true : false,
+                                               !isFileOpen ? 0 : getMyArr(s1, 1, true),
+                                               !isFileOpen ? 0 : getMyArr(s2, 2, true));
 
         if (!(*isPrintFirst || *isPrintSecond))
         {
@@ -324,10 +316,8 @@ int main()
 
         if (isFileClose)
         {
-            ofstream out;
-            out.open(userOutputFpath, ios::app);
-            out << "Масштаб изобрашения 1 к " << count << endl;
-            out.close();
+            userOutputFile << "Масштаб изобрашения 1 к " << count << endl;
+            userOutputFile.close();
         }
         else
             cout << "Масштаб изобрашения 1 к " << count << endl;
@@ -335,7 +325,7 @@ int main()
         sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "test");
 
         int centerWindow = WIDTH / 2;
-        sf::CircleShape centerCircle(1);
+        // sf::CircleShape centerCircle(1);
         sf::Vertex line[2];
         line[0].position.x = centerWindow + coord[twoPoint[0]][0] / scale;
         line[0].position.y = centerWindow - coord[twoPoint[0]][1] / scale;
@@ -344,8 +334,8 @@ int main()
         line[1].position.y = centerWindow - coord[twoPoint[1]][1] / scale;
         line[1].color = sf::Color::Red;
 
-        centerCircle.setPosition(sf::Vector2f(centerWindow, centerWindow));
-        centerCircle.setFillColor(sf::Color::White);
+        // centerCircle.setPosition(sf::Vector2f(centerWindow, centerWindow));
+        // centerCircle.setFillColor(sf::Color::White);
 
         while (window.isOpen())
         {
@@ -357,8 +347,8 @@ int main()
             }
 
             window.clear();
-            window.draw(centerCircle);
             window.draw(line, 2, sf::Lines);
+            // window.draw(centerCircle);
             window.display();
         }
 
