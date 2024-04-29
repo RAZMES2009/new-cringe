@@ -39,7 +39,7 @@ int64_t getMyArr(string inputString, short count = 0, bool isFileOpen = false)
                 continue;
             }
             if (!isdigit(inputString[j]))
-                throw "err";
+                throw runtime_error("err");
         }
         return stoi(inputString);
     }
@@ -301,17 +301,14 @@ int main()
         delete isPrintFirst;
         delete isPrintSecond;
 
-        int scale = 1;
+        int scale = 0;
         int count = 1;
         for (count;; count++)
         {
-            if (coord[twoPoint[0]][0] / scale >= WIDTH || coord[twoPoint[0]][1] / scale >= WIDTH || coord[twoPoint[1]][0] / scale >= WIDTH || coord[twoPoint[1]][1] / scale >= WIDTH)
-                scale++;
-            else
-            {
-                scale++;
+            scale++;
+            if (!(coord[twoPoint[0]][0] / scale >= WIDTH || coord[twoPoint[0]][1] / scale >= WIDTH 
+            || coord[twoPoint[1]][0] / scale >= WIDTH || coord[twoPoint[1]][1] / scale >= WIDTH))
                 break;
-            }
         }
 
         if (isFileClose)
