@@ -82,11 +82,11 @@ bool isPrint(vector<vector<int64_t>> coord, int64_t firstPoint, int64_t secondPo
         distanceY_ij = abs(coord[j][1]) - abs(coord[secondArg][1]);
 
         double buffDistance_ij = sqrt(pow(distanceX_ij, 2) + pow(distanceY_ij, 2));
-        if (fabs(distance_ij - buffDistance_ij) < numeric_limits<double>::epsilon())
+        if (isSmaller(distance_ij, buffDistance_ij))
         {
             stringstream errMsg;
-            string firSec = is_i_j ? " первое " : " второе ";
-            errMsg << "не выполняется " << firSec << " условие, так как дистанция между точкой "
+            string firSec = is_i_j ? "первое " : "второе ";
+            errMsg << "не выполняется " << firSec << "условие, так как дистанция между точкой "
                    << j + 1 << " и " << firstPoint + 1 << " больше или равно дистанции между точками "
                    << firstPoint + 1 << " и " << secondPoint + 1 << endl;
 
@@ -277,7 +277,6 @@ int main()
             userOutputFile = inputUserPath("./out.txt", false);
 
         bool *isPrintFirst = new bool{true}, *isPrintSecond = new bool{true};
-
         vector<int64_t> twoPoint = getTwoPoint(coord, isPrintFirst, isPrintSecond,
                                                !isFileOpen ? false : true, userOutputFile,
                                                isFileClose ? true : false,
